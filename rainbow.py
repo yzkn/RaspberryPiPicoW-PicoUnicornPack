@@ -44,14 +44,6 @@ def rainbow():
             r, g, b = [int(c * 255) for c in hsv_to_rgb(x / w, y / h, 1.0)]
             picounicorn.set_pixel(x, y, r, g, b)
 
-    # print("Press Button A")
-    # 
-    # while not picounicorn.is_pressed(picounicorn.BUTTON_A):  # Wait for Button A to be pressed
-    #     pass
-    # 
-    # clear()
-    # 
-    # print("Button A pressed!")
 
 if __name__ == "__main__":
     rainbow()

@@ -1,44 +1,24 @@
 # Example Led on/ Led off program from raspberry pi foundation for Pico W that has been updated to show ip address on inky pack
 
-import network
-import WIFI_CONFIG
-import time
-import socket
-from rainbow import uni_clear, rainbow
-
 from machine import Pin
-import uasyncio as asyncio
-
 from pimoroni import Button
-from picographics import PicoGraphics, DISPLAY_INKY_PACK
-
-display = PicoGraphics(display=DISPLAY_INKY_PACK)
-
-# you can change the update speed here!
-# it goes from 0 (slowest) to 3 (fastest)
-display.set_update_speed(2)
-
-display.set_font("bitmap8")
-
-button_a = Button(12)  #Buttons not used in this but named incase you want to use them.
-button_b = Button(13)
-button_c = Button(14)
+from picounicorn import PicoUnicorn
+from picographics import PicoGraphics, DISPLAY_UNICORN_PACK
+from rainbow import uni_clear, rainbow
+import network
+import socket
+import time
+import uasyncio as asyncio
+import WIFI_CONFIG
 
 
-# a handy function we can call to clear the screen
-# display.set_pen(15) is white and display.set_pen(0) is black
-def clear():
-    display.set_pen(15)
-    display.clear()
+picounicorn = PicoUnicorn()
+display = PicoGraphics(display=DISPLAY_UNICORN_PACK)
+w = picounicorn.get_width()
+h = picounicorn.get_height()
 
 led = Pin("LED", Pin.OUT, value=0)
 
-ssid = WIFI_CONFIG.SSID
-password = WIFI_CONFIG.PSK
-
-wlan = network.WLAN(network.STA_IF)
-wlan.active(True)
-wlan.connect(ssid, password)
 
 html = """<!DOCTYPE html>
 <html>
@@ -49,6 +29,21 @@ html = """<!DOCTYPE html>
 </html>
 """
 
+
+def clear():
+    for x in range(w):
+        for y in range(h):
+            picounicorn.set_pixel(x, y, 0, 0, 0)
+
+
+ssid = WIFI_CONFIG.SSID
+password = WIFI_CONFIG.PSK
+
+wlan = network.WLAN(network.STA_IF)
+wlan.active(True)
+wlan.connect(ssid, password)
+
+
 max_wait = 10
 while max_wait > 0:
     if wlan.status() < 0 or wlan.status() >= 3:
@@ -56,17 +51,10 @@ while max_wait > 0:
     max_wait -= 1
     print('waiting for connection...')
     clear()
-    display.set_pen(0)
-    display.text("Waiting for Connection", 10, 10, 240, 3)
-    display.update()
-    time.sleep(0.5)
-    time.sleep(1)
+    time.sleep(2)
 
 if wlan.status() != 3:
     clear()
-    display.set_pen(0)
-    display.text("Network Connection Failed", 10, 10, 240, 3)
-    display.update()
     time.sleep(0.5)
     raise RuntimeError('network connection failed')
 
@@ -75,11 +63,6 @@ else:
     status = wlan.ifconfig()
     print( 'ip = ' + status[0] )
     clear()
-    display.set_pen(0)
-    display.text("IP = ", 10, 10, 240, 3)
-    display.text(status[0], 10,50,240,3)
-    display.text("Connected", 10,90,240,3)
-    display.update()
     time.sleep(0.5)
 
 addr = socket.getaddrinfo('0.0.0.0', 8080)[0][-1]
@@ -121,26 +104,13 @@ while True:
             print("led on")
             led.value(1)
             stateis = "LED is ON"
-            clear()
-            display.set_pen(0)
-            display.text("IP = ", 10, 10, 240, 3)
-            display.text(status[0], 10,50,240,3)
-            display.text("LED is ON", 10,90,240,3)
-            display.update()
             time.sleep(0.5)
 
         if led_off == 6:
             print("led off")
             led.value(0)
             stateis = "LED is OFF"
-            clear()
-            display.set_pen(0)
-            display.text("IP = ", 10, 10, 240, 3)
-            display.text(status[0], 10,50,240,3)
-            display.text("LED is OFF", 10,90,240,3)
-            display.update()
-            time.sleep(0.5)            
-            
+            time.sleep(0.5)
 
         response = html % stateis
 
